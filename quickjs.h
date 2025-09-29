@@ -44,7 +44,7 @@ extern "C" {
 #define JS_EXTERN __attribute__((visibility("default")))
 #else
 #define js_force_inline  inline
-#define JS_EXTERN /* nothing */
+#define JS_EXTERN __declspec(dllexport)
 #endif
 
 /* Borrowed from Folly */
@@ -249,6 +249,7 @@ static inline bool JS_VALUE_IS_NAN(JSValue v)
 
 #endif /* !JS_NAN_BOXING */
 
+JS_EXTERN JSValueConst JS_MAKE_VALUE(int64_t tag, int32_t val);
 #define JS_VALUE_IS_BOTH_INT(v1, v2) ((JS_VALUE_GET_TAG(v1) | JS_VALUE_GET_TAG(v2)) == 0)
 #define JS_VALUE_IS_BOTH_FLOAT(v1, v2) (JS_TAG_IS_FLOAT64(JS_VALUE_GET_TAG(v1)) && JS_TAG_IS_FLOAT64(JS_VALUE_GET_TAG(v2)))
 

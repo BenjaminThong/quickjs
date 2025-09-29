@@ -2404,6 +2404,11 @@ JSContext *JS_DupContext(JSContext *ctx)
     return ctx;
 }
 
+JSValue JS_MAKE_VALUE(int64_t tag, int32_t val)
+{
+    return (JSValue){ (JSValueUnion){ .int32 = val }, tag };
+}
+
 /* used by the GC */
 static void JS_MarkContext(JSRuntime *rt, JSContext *ctx,
                            JS_MarkFunc *mark_func)
