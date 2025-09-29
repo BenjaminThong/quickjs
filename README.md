@@ -1,5 +1,12 @@
 # ⚡️ QuickJS - A mighty JavaScript engine
 
+mkdir build
+cd build
+cmake ..
+cmake --build .
+
+if on linux, call "make"  instead of "cmake --build ."
+
 ## Overview
 
 QuickJS is a small and embeddable JavaScript engine. It aims to support the latest
