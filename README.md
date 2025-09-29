@@ -3,9 +3,19 @@
 mkdir build
 cd build
 cmake ..
-cmake --build .
+open the generated quickjs.sln and build the qjs project.
+remember to run "dart run ffigen --config ffigen.yaml" to regenerate dart bindings from the project root 
 
+cmake --build .  <-- this builds everything but I modified cmakfile.txt to do shared lib on windows
 if on linux, call "make"  instead of "cmake --build ."
+
+
+
+
+
+
+
+
 
 ## Overview
 
