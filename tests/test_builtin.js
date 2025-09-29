@@ -427,10 +427,15 @@ function test_number()
     assert((-25).toExponential(0), "-3e+1");
     assert((2.5).toPrecision(1), "3");
     assert((-2.5).toPrecision(1), "-3");
+    assert((25).toPrecision(1) === "3e+1");
     assert((1.125).toFixed(2), "1.13");
     assert((-1.125).toFixed(2), "-1.13");
     assert((0.5).toFixed(0), "1");
     assert((-0.5).toFixed(0), "-1");
+    assert((-1e-10).toFixed(0), "-0");
+
+    assert((1.3).toString(7), "1.2046204620462046205");
+    assert((1.3).toString(35), "1.ahhhhhhhhhm");
 }
 
 function test_eval2()
@@ -569,6 +574,16 @@ function test_typed_array()
     assert(a.buffer, b.buffer);
     assert(a.toString(), "0,0,0,255");
     assert(b.toString(), "0,0,255,255");
+
+    const TypedArray = class extends Object.getPrototypeOf(Uint8Array) {};
+    let caught = false;
+    try {
+        new TypedArray(); // extensible but not instantiable
+    } catch (e) {
+        assert(/cannot be called/.test(e.message));
+        caught = true;
+    }
+    assert(caught);
 }
 
 function test_json()
@@ -608,11 +623,26 @@ function test_date()
     // Hence the fractional part after . should have 3 digits and how
     // a different number of digits is handled is implementation defined.
     assert(Date.parse(""), NaN);
+    assert(Date.parse("13"), NaN);
+    assert(Date.parse("31"), NaN);
+    assert(Date.parse("1000"), -30610224000000);
+    assert(Date.parse("1969"), -31536000000);
+    assert(Date.parse("1970"), 0);
     assert(Date.parse("2000"), 946684800000);
+    assert(Date.parse("9999"), 253370764800000);
+    assert(Date.parse("275761"), NaN);
+    assert(Date.parse("999999"), NaN);
+    assert(Date.parse("1000000000"), NaN);
+    assert(Date.parse("-271821"), NaN);
+    assert(Date.parse("-271820"), -8639977881600000);
+    assert(Date.parse("-100000"), -3217862419200000);
+    assert(Date.parse("+100000"), 3093527980800000);
+    assert(Date.parse("+275760"), 8639977881600000);
+    assert(Date.parse("+275761"), NaN);
     assert(Date.parse("2000-01"), 946684800000);
     assert(Date.parse("2000-01-01"), 946684800000);
-    //assert(Date.parse("2000-01-01T"), NaN);
-    //assert(Date.parse("2000-01-01T00Z"), NaN);
+    assert(Date.parse("2000-01-01T"), NaN);
+    assert(Date.parse("2000-01-01T00Z"), NaN);
     assert(Date.parse("2000-01-01T00:00Z"), 946684800000);
     assert(Date.parse("2000-01-01T00:00:00Z"), 946684800000);
     assert(Date.parse("2000-01-01T00:00:00.1Z"), 946684800100);
@@ -878,6 +908,48 @@ function test_weak_map()
     /* the WeakMap should be empty here */
 }
 
+function test_set()
+{
+    const iter = {
+        a: [4, 5, 6],
+        nextCalls: 0,
+        returnCalls: 0,
+        next() {
+            const done = this.nextCalls >= this.a.length
+            const value = this.a[this.nextCalls]
+            this.nextCalls++
+            return {done, value}
+        },
+        return() {
+            this.returnCalls++
+            return this
+        },
+    }
+    const setlike = {
+        size: iter.a.length,
+        has(v) { return iter.a.includes(v) },
+        keys() { return iter },
+    }
+    // set must be bigger than iter.a to hit iter.next and iter.return
+    assert(new Set([4,5,6,7]).isSupersetOf(setlike), true)
+    assert(iter.nextCalls, 4);
+    assert(iter.returnCalls, 0);
+    iter.nextCalls = iter.returnCalls = 0
+    assert(new Set([0,1,2,3]).isSupersetOf(setlike), false)
+    assert(iter.nextCalls, 1);
+    assert(iter.returnCalls, 1);
+    iter.nextCalls = iter.returnCalls = 0
+    // set must be bigger than iter.a to hit iter.next and iter.return
+    assert(new Set([4,5,6,7]).isDisjointFrom(setlike), false)
+    assert(iter.nextCalls, 1);
+    assert(iter.returnCalls, 1);
+    iter.nextCalls = iter.returnCalls = 0
+    assert(new Set([0,1,2,3]).isDisjointFrom(setlike), true)
+    assert(iter.nextCalls, 4);
+    assert(iter.returnCalls, 0);
+    iter.nextCalls = iter.returnCalls = 0
+}
+
 function test_weak_set()
 {
     var a, e;
@@ -1073,6 +1145,7 @@ test_regexp();
 test_symbol();
 test_map();
 test_weak_map();
+test_set();
 test_weak_set();
 test_generator();
 test_proxy_iter();
