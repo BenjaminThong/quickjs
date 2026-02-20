@@ -1,10 +1,9 @@
 // clang -g -O1 -fsanitize=fuzzer -o fuzz fuzz.c
 #include "quickjs.h"
 #include "quickjs.c"
-#include "cutils.c"
+#include "cutils.h"
 #include "libregexp.c"
 #include "libunicode.c"
-#include "xsum.c"
 #include <stdlib.h>
 
 int LLVMFuzzerTestOneInput(const uint8_t *buf, size_t len)
